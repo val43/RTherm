@@ -18,12 +18,15 @@ micropython dependencies:
       
 # Raspberry:
 software:
- - Raspbian lite 32bit with Xorg server but without desktop environment
+ - Raspbian lite 32bit without desktop environment
+ - Matchbox window manager
  - Nodered
  - Influxdb
  - Mosquitto
  - autoexec bash script from /etc/rc.local
  - feh and python script to control it for screensaver
+ - chromium
+ - unclutter
       
 hardware
  - gpio buttons
