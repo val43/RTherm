@@ -1,0 +1,12 @@
+# Enable audio (loads snd_bcm2835)
+#dtparam=audio=on
+
+# Disable Bluetooth
+dtoverlay=disable-bt
+dtoverlay=pi3-disable-bt
+
+[all]
+#hdmi_enable_4kp60=1
+enable_uart=1
+
+dtoverlay=gpio-shutdown
