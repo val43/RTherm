@@ -1,0 +1,105 @@
+## se migri su OS a 64bit puoi installare influx 2, che ti da possibilità di fare export automatici delle impostazioni come template
+
+# CONFIGURAZIONE SERVIZIO 
+>sudo nano /etc/influxdb/influxdb.conf
+
+# COMANDI CONSOLE
+>influx
+
+# COMANDI SHELL INFLUX
+show databases
+show retention policies
+show field keys
+show measurements
+show series
+
+# DATABASE
+create database RTherm
+use RTherm
+
+create database <database_name> [with [duration <duration>] [replication <n>] [shard duration <duration>] [name <retention-policy-name>]]
+drop database
+drop series
+drop measurement
+create retention policy
+alter retention policy
+drop retention policy
+create continuous query
+drop continuous query
+
+# UTENTI
+create user nodered with password 'l4chi4v3'
+grant write on RTherm to nodered
+create user
+grant [read,write,all]
+revoke [read,write,all]
+show users
+set password
+drop user
+
+# RETENTION POLICIES
+create retention policy "1giorno" on "RTherm" duration 1d replication 1 default
+create retention policy "1settimana" on "RTherm" duration 7d replication 1
+create retention policy "1mese" on "RTherm" duration 31d replication 1
+create retention policy "1anno" on "RTherm" duration 365d replication 1
+
+# CONTINUOUS QUERIES
+create continuous query "cq_readings_1m-30m"	on "RTherm" begin select mean("humidity") as "mean_humidity", mean("pressure") as "mean_pressure", mean("temperature") as "mean_temperature", mean("targetT") as mean_targetT, mean(activity_heating) as activity_heating, mean(activity_cooling) as activity_cooling 																						into "1settimana"."readings-30m" 	from "readings" group by location,time(30m) end
+create continuous query "cq_readings_1m-2h" 	on "RTherm" begin select mean("humidity") as "mean_humidity", mean("pressure") as "mean_pressure", max("temperature") as "max_temperature", min("temperature") as "min_temperature", mean("temperature") as "mean_temperature", mean("targetT") as mean_targetT, mean(activity_heating) as activity_heating, mean(activity_cooling) as activity_cooling 	into "1mese"."readings-2h" 			from "readings" group by location,time(2h) end
+create continuous query "cq_readings_30m-1d" 	on "RTherm" begin select mean("humidity") as "mean_humidity", mean("pressure") as "mean_pressure", max("temperature") as "max_temperature", min("temperature") as "min_temperature", mean("temperature") as "mean_temperature", mean("targetT") as mean_targetT, mean(activity_heating) as activity_heating, mean(activity_cooling) as activity_cooling  	into "1anno"."readings-1d" 			from "1settimana"."readings-30m" group by location,time(1d) end
+
+
+## PER NODERED O TEST
+# QUERY 15gg
+'SELECT time, max_temp, min_temp, mean_temp FROM "15days"."1h_downsampled_readings" WHERE time>now()-' & msg.payload &'d GROUP BY location'
+'SELECT time, mean_humidity FROM "15days"."1h_downsampled_readings" WHERE time>now()-' & msg.payload &'d GROUP BY location'
+'SELECT time, mean_cooling, mean_heating FROM "15days"."1h_downsampled_activity" WHERE time>now()-' & msg.payload &'d'
+'SELECT time, mean_target as targetT FROM "15days"."target_downsampled_1d" WHERE time>now()-'& msg.payload &'d'
+
+
+## RECAP
+
+# MEASUREMENTS
+readings 		(precisione 1 minuto)		(RP 1giorno)
+readings-30m	(precisione 30 minuti)		(RP 1settimana)
+readings-2h		(precisione 2 ore)			(RP 1mese)
+readings-1d		(precisione 1 giorno)		(RP 1anno)
+
+# FIELD KEYS
+> 1giorno:
+temperature
+humidity
+pressure
+targetT
+activity_heating
+activity_cooling
+
+> 1settimana:
+mean_temperature
+min_temperature
+max_temperature
+mean_humidity
+mean_pressure
+mean_targetT
+activity_heating
+activity_cooling
+
+> 1mese:
+mean_temperature
+min_temperature
+max_temperature
+mean_humidity
+mean_pressure
+mean_targetT
+activity_heating
+activity_cooling
+
+> 1anno:
+mean_temperature
+min_temperature
+max_temperature
+mean_humidity
+mean_pressure
+mean_targetT
+activity_heating
+activity_cooling
